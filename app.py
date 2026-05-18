@@ -1,15 +1,12 @@
 """
-Citation Annotator: full app, styled.
+Citation Annotator: full app, with theme switcher.
 
-Flow:
-  1. Login (email + OTP via Resend)
-  2. Consent screen (first visit only)
-  3. Onboarding survey (first visit only)
-  4. Dashboard (list of assignments)
-  5. Annotation page (per prompt)
-
-Test mode (test@test.com): skip auth, skip consent, skip onboarding,
-show a test-mode banner, do not save anything.
+Themes:
+  - editorial : warm cream, serif, terracotta accent (academic journal)
+  - modern    : white, sans-serif, indigo accent (Linear/Notion vibe)
+  - terminal  : dark background, monospace, green accent (developer tool)
+  - print     : narrow column, large serif (book-like)
+  - default   : minimal Streamlit defaults
 """
 
 import random
@@ -65,13 +62,16 @@ KD_FAMILIARITY_OPTIONS = [
     "I'm new to this literature",
 ]
 
+
 # ----------------------------------------------------------------------------
-# Custom styling
+# Themes
 # ----------------------------------------------------------------------------
 
-CUSTOM_CSS = """
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+THEMES = {
+    "editorial": {
+        "label": "Editorial",
+        "css": """
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
 :root {
     --bg: #FAF8F3;
@@ -82,63 +82,177 @@ CUSTOM_CSS = """
     --border: #E8E2D5;
     --border-strong: #D4CCB8;
     --accent: #A33B20;
-    --accent-soft: #C25A3D;
     --accent-bg: #F5E8E0;
     --success: #2E6B3E;
     --warning: #B5811D;
     --danger: #A33B20;
+    --display-font: 'Fraunces', serif;
+    --body-font: 'IBM Plex Sans', sans-serif;
+    --mono-font: 'IBM Plex Mono', monospace;
+}
+.stApp { background: var(--bg); color: var(--ink); font-family: var(--body-font); }
+h1, h2, h3, h4 { font-family: var(--display-font) !important; font-weight: 500 !important; color: var(--ink) !important; letter-spacing: -0.01em; }
+h1 { font-size: 2.5rem !important; line-height: 1.15; }
+h2 { font-size: 1.75rem !important; }
+h3 { font-size: 1.3rem !important; }
+.brand-mark { font-family: var(--display-font); font-weight: 600; color: var(--accent); }
+.instruction-card { font-family: var(--display-font); border-left: 3px solid var(--accent); background: var(--bg-card); }
+.candidate-title { font-family: var(--display-font); }
+""",
+    },
+    "modern": {
+        "label": "Modern",
+        "css": """
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+    --bg: #FFFFFF;
+    --bg-card: #FAFBFC;
+    --ink: #0E0E10;
+    --ink-soft: #383844;
+    --muted: #7A7B85;
+    --border: #EBEBEF;
+    --border-strong: #D8D8DD;
+    --accent: #5E5CE6;
+    --accent-bg: #EEEDFE;
+    --success: #0F7B3A;
+    --warning: #B5811D;
+    --danger: #D13438;
+    --display-font: 'Inter', sans-serif;
+    --body-font: 'Inter', sans-serif;
+    --mono-font: 'JetBrains Mono', monospace;
+}
+.stApp { background: var(--bg); color: var(--ink); font-family: var(--body-font); }
+h1, h2, h3, h4 { font-family: var(--display-font) !important; font-weight: 600 !important; color: var(--ink) !important; letter-spacing: -0.02em; }
+h1 { font-size: 2.25rem !important; line-height: 1.1; }
+h2 { font-size: 1.5rem !important; }
+h3 { font-size: 1.15rem !important; }
+.brand-mark { font-family: var(--display-font); font-weight: 700; color: var(--accent); letter-spacing: -0.02em; }
+.instruction-card { border-left: 3px solid var(--accent); background: var(--accent-bg); font-weight: 500; }
+.candidate-title { font-family: var(--display-font); font-weight: 600; }
+""",
+    },
+    "terminal": {
+        "label": "Terminal",
+        "css": """
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+:root {
+    --bg: #0D1117;
+    --bg-card: #161B22;
+    --ink: #E6EDF3;
+    --ink-soft: #C9D1D9;
+    --muted: #7D8590;
+    --border: #30363D;
+    --border-strong: #484F58;
+    --accent: #7EE787;
+    --accent-bg: #1A2F1F;
+    --success: #3FB950;
+    --warning: #D29922;
+    --danger: #F85149;
+    --display-font: 'JetBrains Mono', monospace;
+    --body-font: 'IBM Plex Sans', sans-serif;
+    --mono-font: 'JetBrains Mono', monospace;
+}
+.stApp { background: var(--bg); color: var(--ink); font-family: var(--body-font); }
+h1, h2, h3, h4 { font-family: var(--display-font) !important; font-weight: 600 !important; color: var(--ink) !important; }
+h1 { font-size: 2rem !important; line-height: 1.15; }
+h1::before { content: '> '; color: var(--accent); }
+h2 { font-size: 1.4rem !important; }
+h3 { font-size: 1.15rem !important; }
+.brand-mark { font-family: var(--display-font); font-weight: 700; color: var(--accent); }
+.brand-mark::before { content: '$ '; opacity: 0.6; }
+.instruction-card { border-left: 3px solid var(--accent); background: var(--bg-card); font-family: var(--body-font); }
+.candidate-title { font-family: var(--body-font); font-weight: 600; color: var(--ink); }
+.stApp p, .stApp label, .stApp div, .stMarkdown p { color: var(--ink-soft); }
+""",
+    },
+    "print": {
+        "label": "Print",
+        "css": """
+@import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+    --bg: #F9F6EE;
+    --bg-card: #FFFFFE;
+    --ink: #1C1815;
+    --ink-soft: #2E2926;
+    --muted: #65605A;
+    --border: #DDD6C5;
+    --border-strong: #C8BFA8;
+    --accent: #5A341C;
+    --accent-bg: #EDE3D2;
+    --success: #2D5938;
+    --warning: #8A6A1A;
+    --danger: #7A2B1B;
+    --display-font: 'Spectral', serif;
+    --body-font: 'Spectral', serif;
+    --mono-font: 'Inter', sans-serif;
+}
+.stApp { background: var(--bg); color: var(--ink); font-family: var(--body-font); }
+[data-testid="stMainBlockContainer"] { max-width: 640px !important; }
+h1, h2, h3, h4 { font-family: var(--display-font) !important; font-weight: 500 !important; color: var(--ink) !important; }
+h1 { font-size: 2.75rem !important; line-height: 1.1; font-style: italic; font-weight: 400 !important; }
+h2 { font-size: 1.8rem !important; }
+h3 { font-size: 1.35rem !important; }
+.brand-mark { font-family: var(--display-font); font-style: italic; font-weight: 500; color: var(--ink); }
+.instruction-card { font-family: var(--display-font); border-left: 2px solid var(--accent); font-size: 1.2rem !important; font-style: italic; background: transparent; }
+.candidate-title { font-family: var(--display-font); font-size: 1.15rem; font-weight: 500; }
+.stApp p, .stMarkdown p { font-size: 1.05rem; line-height: 1.7; }
+""",
+    },
+    "default": {
+        "label": "Default",
+        "css": """
+:root {
+    --bg: #FFFFFF;
+    --bg-card: #FFFFFF;
+    --ink: #262730;
+    --ink-soft: #262730;
+    --muted: #808495;
+    --border: #E0E0E0;
+    --border-strong: #C0C0C0;
+    --accent: #FF4B4B;
+    --accent-bg: #FFE5E5;
+    --success: #21BA45;
+    --warning: #F2C037;
+    --danger: #FF4B4B;
+    --display-font: 'Source Sans 3', sans-serif;
+    --body-font: 'Source Sans 3', sans-serif;
+    --mono-font: monospace;
+}
+""",
+    },
 }
 
-/* --- Base --- */
-.stApp {
-    background: var(--bg);
-    color: var(--ink);
-    font-family: 'IBM Plex Sans', sans-serif;
-}
+DEFAULT_THEME = "editorial"
 
+
+# Universal CSS that applies on top of every theme.
+UNIVERSAL_CSS = """
+/* --- Hide Streamlit chrome --- */
+#MainMenu { visibility: hidden; }
+header[data-testid="stHeader"] { display: none; }
+footer { visibility: hidden; }
+[data-testid="stToolbar"] { display: none; }
 .stApp [data-testid="stSidebar"] { display: none; }
 
-/* Main container */
+/* --- Main container --- */
 [data-testid="stMainBlockContainer"] {
     max-width: 760px;
-    padding-top: 3rem;
+    padding-top: 2.5rem;
     padding-bottom: 6rem;
 }
 
-/* --- Typography --- */
-.stApp, .stApp p, .stApp label, .stApp div {
-    font-family: 'IBM Plex Sans', sans-serif;
-    color: var(--ink);
+/* --- Theme switcher --- */
+.theme-switcher {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
 }
 
-h1, h2, h3, h4 {
-    font-family: 'Fraunces', serif !important;
-    font-weight: 500 !important;
-    color: var(--ink) !important;
-    letter-spacing: -0.01em;
-}
-
-h1 { font-size: 2.5rem !important; line-height: 1.15; margin-bottom: 0.5rem !important; }
-h2 { font-size: 1.75rem !important; line-height: 1.2; }
-h3 { font-size: 1.3rem !important; }
-
-/* Body text */
-p, .stMarkdown p {
-    font-size: 1rem;
-    line-height: 1.65;
-    color: var(--ink-soft);
-}
-
-code, .stMarkdown code {
-    font-family: 'IBM Plex Mono', monospace !important;
-    background: var(--accent-bg) !important;
-    color: var(--accent) !important;
-    padding: 0.1em 0.4em !important;
-    border-radius: 3px !important;
-    font-size: 0.92em !important;
-}
-
-/* --- Header brand strip --- */
+/* --- Brand strip --- */
 .brand-strip {
     display: flex;
     align-items: baseline;
@@ -148,23 +262,20 @@ code, .stMarkdown code {
     border-bottom: 1px solid var(--border);
 }
 .brand-mark {
-    font-family: 'Fraunces', serif;
-    font-weight: 600;
     font-size: 1.15rem;
-    color: var(--accent);
-    letter-spacing: 0.02em;
+    letter-spacing: 0.01em;
 }
 .brand-meta {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--mono-font);
     font-size: 0.78rem;
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.08em;
 }
 
-/* --- Eyebrow label --- */
+/* --- Eyebrow --- */
 .eyebrow {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--mono-font);
     font-size: 0.72rem;
     color: var(--accent);
     text-transform: uppercase;
@@ -173,26 +284,35 @@ code, .stMarkdown code {
     margin-bottom: 0.75rem;
 }
 
+/* --- Body --- */
+.stApp p, .stMarkdown p { font-size: 1rem; line-height: 1.65; color: var(--ink-soft); }
+code, .stMarkdown code {
+    font-family: var(--mono-font) !important;
+    background: var(--accent-bg) !important;
+    color: var(--accent) !important;
+    padding: 0.1em 0.4em !important;
+    border-radius: 3px !important;
+    font-size: 0.92em !important;
+}
+
 /* --- Buttons --- */
 .stButton > button {
-    font-family: 'IBM Plex Sans', sans-serif !important;
+    font-family: var(--body-font) !important;
     font-weight: 500 !important;
-    font-size: 0.95rem !important;
-    border-radius: 2px !important;
-    padding: 0.6rem 1.5rem !important;
+    font-size: 0.9rem !important;
+    border-radius: 4px !important;
+    padding: 0.5rem 1.1rem !important;
     transition: all 0.15s ease !important;
     border: 1px solid var(--border-strong) !important;
     background: var(--bg-card) !important;
     color: var(--ink) !important;
     box-shadow: none !important;
 }
-
 .stButton > button:hover {
     border-color: var(--ink) !important;
     background: var(--ink) !important;
     color: var(--bg) !important;
 }
-
 .stButton > button[kind="primary"] {
     background: var(--accent) !important;
     color: var(--bg-card) !important;
@@ -201,8 +321,8 @@ code, .stMarkdown code {
 .stButton > button[kind="primary"]:hover {
     background: var(--ink) !important;
     border-color: var(--ink) !important;
+    color: var(--bg) !important;
 }
-
 .stButton > button:disabled {
     background: var(--border) !important;
     color: var(--muted) !important;
@@ -213,86 +333,40 @@ code, .stMarkdown code {
 /* --- Inputs --- */
 .stTextInput > div > div > input,
 .stSelectbox > div > div {
-    font-family: 'IBM Plex Sans', sans-serif !important;
-    border-radius: 2px !important;
+    font-family: var(--body-font) !important;
+    border-radius: 4px !important;
     border: 1px solid var(--border-strong) !important;
     background: var(--bg-card) !important;
     font-size: 1rem !important;
     color: var(--ink) !important;
 }
-
-.stTextInput > div > div > input:focus {
-    border-color: var(--accent) !important;
-    box-shadow: 0 0 0 1px var(--accent) !important;
-}
-
-.stTextInput > label, .stSelectbox > label {
-    font-family: 'IBM Plex Sans', sans-serif !important;
-    font-size: 0.9rem !important;
-    color: var(--ink-soft) !important;
-    font-weight: 500 !important;
-}
+.stTextInput > div > div > input:focus { border-color: var(--accent) !important; box-shadow: 0 0 0 1px var(--accent) !important; }
+.stTextInput > label, .stSelectbox > label { font-family: var(--body-font) !important; font-size: 0.9rem !important; color: var(--ink-soft) !important; font-weight: 500 !important; }
 
 /* --- Metrics --- */
-[data-testid="stMetric"] {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    padding: 1.25rem 1.5rem;
-    border-radius: 2px;
-}
-[data-testid="stMetricLabel"] {
-    font-family: 'IBM Plex Mono', monospace !important;
-    font-size: 0.72rem !important;
-    color: var(--muted) !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.1em !important;
-    font-weight: 500 !important;
-}
-[data-testid="stMetricValue"] {
-    font-family: 'Fraunces', serif !important;
-    font-weight: 500 !important;
+[data-testid="stMetric"] { background: var(--bg-card); border: 1px solid var(--border); padding: 1.25rem 1.5rem; border-radius: 4px; }
+[data-testid="stMetricLabel"] { font-family: var(--mono-font) !important; font-size: 0.72rem !important; color: var(--muted) !important; text-transform: uppercase !important; letter-spacing: 0.1em !important; font-weight: 500 !important; }
+[data-testid="stMetricValue"] { font-family: var(--display-font) !important; font-weight: 600 !important; color: var(--ink) !important; }
+
+/* --- Alerts --- */
+div[data-testid="stAlertContainer"] {
+    border-radius: 4px !important;
+    border-left: 3px solid var(--accent) !important;
+    font-family: var(--body-font) !important;
+    background: var(--accent-bg) !important;
     color: var(--ink) !important;
 }
+div[data-testid="stAlertContainer"] * { color: var(--ink) !important; }
 
-/* --- Info / warning / error / success boxes --- */
-div[data-testid="stAlertContainer"] {
-    border-radius: 2px !important;
-    border-left: 3px solid var(--accent) !important;
-    font-family: 'IBM Plex Sans', sans-serif !important;
-}
-
-/* Hide default streamlit chrome */
-#MainMenu { visibility: hidden; }
-header[data-testid="stHeader"] { display: none; }
-footer { visibility: hidden; }
-[data-testid="stToolbar"] { display: none; }
-
-/* --- Candidate card --- */
-.candidate-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    padding: 1.1rem 1.25rem;
-    margin-bottom: 0.6rem;
-    transition: border-color 0.15s ease;
-}
-.candidate-card:hover {
-    border-color: var(--border-strong);
-}
-.candidate-card-selected {
-    border-color: var(--accent) !important;
-    background: var(--accent-bg);
-}
+/* --- Candidate elements --- */
 .candidate-title {
-    font-family: 'Fraunces', serif;
-    font-weight: 500;
     font-size: 1.05rem;
     color: var(--ink);
     line-height: 1.35;
     margin-bottom: 0.35rem;
 }
 .candidate-position {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--mono-font);
     font-size: 0.7rem;
     color: var(--muted);
     margin-bottom: 0.3rem;
@@ -300,137 +374,100 @@ footer { visibility: hidden; }
     text-transform: uppercase;
 }
 
-/* Streamlit checkbox restyle */
-.stCheckbox > label {
-    font-family: 'IBM Plex Sans', sans-serif !important;
-}
-.stCheckbox > label > div[data-testid="stMarkdownContainer"] {
-    display: none;
-}
+/* --- Expanders --- */
+[data-testid="stExpander"] { border: none !important; background: transparent !important; box-shadow: none !important; }
+[data-testid="stExpander"] > details > summary { background: transparent !important; padding: 0.3rem 0 !important; font-family: var(--mono-font) !important; font-size: 0.78rem !important; color: var(--muted) !important; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500 !important; }
+[data-testid="stExpander"] [data-testid="stMarkdownContainer"] p { font-size: 0.92rem; color: var(--ink-soft); line-height: 1.55; margin: 0.5rem 0 0 0; }
 
-/* Expander for abstracts */
-.streamlit-expanderHeader, [data-testid="stExpander"] summary {
-    font-family: 'IBM Plex Sans', sans-serif !important;
-    font-size: 0.85rem !important;
-    color: var(--muted) !important;
-    font-weight: 400 !important;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-}
-[data-testid="stExpander"] {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-}
-[data-testid="stExpander"] > details {
-    background: transparent;
-    border: none;
-}
-[data-testid="stExpander"] > details > summary {
-    background: transparent !important;
-    padding: 0.3rem 0 !important;
-}
-[data-testid="stExpander"] [data-testid="stMarkdownContainer"] p {
-    font-size: 0.92rem;
-    color: var(--ink-soft);
-    line-height: 1.55;
-    margin: 0.5rem 0 0 0;
-}
-
-/* Section divider */
-hr {
-    border: none !important;
-    border-top: 1px solid var(--border) !important;
-    margin: 2rem 0 !important;
-}
+/* --- Divider --- */
+hr { border: none !important; border-top: 1px solid var(--border) !important; margin: 2rem 0 !important; }
 
 /* --- Status badges --- */
 .status-badge {
     display: inline-block;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--mono-font);
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     padding: 0.2rem 0.5rem;
-    border-radius: 2px;
+    border-radius: 3px;
     font-weight: 500;
 }
-.status-in-progress { background: #FFF4E0; color: var(--warning); border: 1px solid #F0DBB0; }
-.status-completed { background: #E5F0E8; color: var(--success); border: 1px solid #C5DCCC; }
-.status-expired { background: #F2DDD7; color: var(--danger); border: 1px solid #DDB8AC; }
+.status-in-progress { background: var(--accent-bg); color: var(--warning); border: 1px solid var(--border-strong); }
+.status-completed { background: var(--accent-bg); color: var(--success); border: 1px solid var(--border-strong); }
+.status-expired { background: var(--accent-bg); color: var(--danger); border: 1px solid var(--border-strong); }
 .status-abandoned { background: var(--border); color: var(--muted); }
 
 /* --- Test mode banner --- */
 .test-banner {
-    background: #FFF4E0;
-    border: 1px solid #F0DBB0;
+    background: var(--accent-bg);
     border-left: 3px solid var(--warning);
-    color: var(--warning);
+    color: var(--warning) !important;
     padding: 0.7rem 1rem;
     margin-bottom: 1.5rem;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--mono-font);
     font-size: 0.85rem;
-    border-radius: 2px;
+    border-radius: 4px;
 }
+.test-banner * { color: var(--warning) !important; }
 
-/* --- Selected counter pill --- */
+/* --- Selection counter --- */
 .selection-counter {
     display: inline-block;
     background: var(--ink);
-    color: var(--bg);
+    color: var(--bg) !important;
     padding: 0.5rem 1rem;
-    border-radius: 2px;
-    font-family: 'IBM Plex Mono', monospace;
+    border-radius: 4px;
+    font-family: var(--mono-font);
     font-size: 0.85rem;
     letter-spacing: 0.05em;
     margin-bottom: 1rem;
+    font-weight: 500;
 }
+.selection-counter * { color: var(--bg) !important; }
 .selection-counter-warn { background: var(--warning); }
+.selection-counter-warn, .selection-counter-warn * { color: var(--bg) !important; }
 .selection-counter-danger { background: var(--danger); }
+.selection-counter-danger, .selection-counter-danger * { color: var(--bg) !important; }
+
+/* --- Instruction card --- */
+.instruction-card {
+    padding: 1.25rem 1.5rem;
+    margin: 1.25rem 0 2rem 0;
+    font-size: 1.1rem;
+    line-height: 1.5;
+    color: var(--ink);
+    border-radius: 4px;
+}
 
 /* --- Assignment row --- */
-.assignment-row {
-    padding: 1rem 0;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
 .assignment-id {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--mono-font);
     font-size: 0.95rem;
     color: var(--ink);
     font-weight: 500;
 }
 .assignment-time {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--mono-font);
     font-size: 0.78rem;
     color: var(--muted);
 }
 
-/* --- Prompt instruction card --- */
-.instruction-card {
-    background: var(--bg-card);
-    border-left: 3px solid var(--accent);
-    padding: 1.25rem 1.5rem;
-    margin: 1.5rem 0 2rem 0;
-    font-family: 'Fraunces', serif;
-    font-size: 1.1rem;
-    line-height: 1.5;
-    color: var(--ink);
+/* --- Theme switcher buttons (rendered as small buttons) --- */
+.theme-switcher-label {
+    font-family: var(--mono-font);
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-right: 0.4rem;
+    margin-bottom: 0.5rem;
 }
-
-/* Small caps */
-.small-caps {
-    font-variant: small-caps;
-    letter-spacing: 0.05em;
-}
-</style>
 """
 
 
 # ----------------------------------------------------------------------------
-# Supabase client
+# Supabase
 # ----------------------------------------------------------------------------
 
 @st.cache_resource
@@ -439,28 +476,29 @@ def get_supabase():
 
 sb = get_supabase()
 
+
 # ----------------------------------------------------------------------------
 # Utilities
 # ----------------------------------------------------------------------------
 
-def now_utc() -> datetime:
+def now_utc():
     return datetime.now(timezone.utc)
 
 
-def generate_code() -> str:
+def generate_code():
     return "".join(secrets.choice(string.digits) for _ in range(CODE_LENGTH))
 
 
-def generate_session_token() -> str:
+def generate_session_token():
     alphabet = string.ascii_letters + string.digits
     return "".join(secrets.choice(alphabet) for _ in range(32))
 
 
-def parse_ts(s: str) -> datetime:
+def parse_ts(s):
     return datetime.fromisoformat(s)
 
 
-def humanize_remaining(expires_at: datetime) -> str:
+def humanize_remaining(expires_at):
     remaining = expires_at - now_utc()
     if remaining.total_seconds() <= 0:
         return "expired"
@@ -472,11 +510,61 @@ def humanize_remaining(expires_at: datetime) -> str:
     return f"{minutes}m"
 
 
-def is_test_mode() -> bool:
+def is_test_mode():
     return st.session_state.get("email") == TEST_EMAIL
 
 
-def render_brand_strip(extra: str = ""):
+def get_current_theme():
+    """Theme from URL param or session state, falling back to default."""
+    # Priority: URL param > session state > default
+    theme_from_url = st.query_params.get("theme")
+    if theme_from_url and theme_from_url in THEMES:
+        st.session_state.theme = theme_from_url
+        return theme_from_url
+    if "theme" in st.session_state and st.session_state.theme in THEMES:
+        return st.session_state.theme
+    return DEFAULT_THEME
+
+
+def set_theme(theme_name):
+    if theme_name in THEMES:
+        st.session_state.theme = theme_name
+        st.query_params["theme"] = theme_name
+
+
+def inject_theme_css():
+    theme = get_current_theme()
+    theme_css = THEMES[theme]["css"]
+    full_css = f"<style>{theme_css}\n{UNIVERSAL_CSS}</style>"
+    st.markdown(full_css, unsafe_allow_html=True)
+
+
+def render_theme_switcher():
+    """Render small inline buttons for theme switching."""
+    current = get_current_theme()
+    theme_names = list(THEMES.keys())
+    cols = st.columns([1] + [1] * len(theme_names) + [3])
+    with cols[0]:
+        st.markdown(
+            '<div class="theme-switcher-label" style="padding-top: 0.55rem;">THEME</div>',
+            unsafe_allow_html=True,
+        )
+    for i, name in enumerate(theme_names):
+        with cols[i + 1]:
+            label = THEMES[name]["label"]
+            is_current = (name == current)
+            # The "current" theme button is shown disabled to indicate selection
+            if st.button(
+                label,
+                key=f"theme_btn_{name}",
+                disabled=is_current,
+                type="primary" if is_current else "secondary",
+            ):
+                set_theme(name)
+                st.rerun()
+
+
+def render_brand_strip(extra=""):
     st.markdown(
         f"""
         <div class="brand-strip">
@@ -489,10 +577,10 @@ def render_brand_strip(extra: str = ""):
 
 
 # ----------------------------------------------------------------------------
-# Auth (email OTP)
+# Auth
 # ----------------------------------------------------------------------------
 
-def send_code_email(to_email: str, code: str) -> bool:
+def send_code_email(to_email, code):
     r = requests.post(
         "https://api.resend.com/emails",
         headers={
@@ -519,7 +607,7 @@ def send_code_email(to_email: str, code: str) -> bool:
     return True
 
 
-def store_verification_code(email: str, code: str):
+def store_verification_code(email, code):
     sb.table("verification_codes").delete().eq("email", email).execute()
     sb.table("verification_codes").insert({
         "email": email,
@@ -528,12 +616,8 @@ def store_verification_code(email: str, code: str):
     }).execute()
 
 
-def verify_code(email: str, code: str) -> bool:
-    res = (sb.table("verification_codes")
-             .select("*")
-             .eq("email", email)
-             .eq("code", code)
-             .execute())
+def verify_code(email, code):
+    res = sb.table("verification_codes").select("*").eq("email", email).eq("code", code).execute()
     if not res.data:
         return False
     if parse_ts(res.data[0]["expires_at"]) < now_utc():
@@ -542,7 +626,7 @@ def verify_code(email: str, code: str) -> bool:
     return True
 
 
-def create_session(email: str) -> str:
+def create_session(email):
     token = generate_session_token()
     sb.table("sessions").insert({
         "token": token,
@@ -552,7 +636,7 @@ def create_session(email: str) -> str:
     return token
 
 
-def lookup_session(token: str):
+def lookup_session(token):
     res = sb.table("sessions").select("*").eq("token", token).execute()
     if not res.data:
         return None
@@ -562,7 +646,7 @@ def lookup_session(token: str):
     return row["email"]
 
 
-def end_session(token: str):
+def end_session(token):
     sb.table("sessions").delete().eq("token", token).execute()
 
 
@@ -578,7 +662,7 @@ def restore_session_from_url():
         st.session_state.session_token = token
 
 
-def log_in(email: str):
+def log_in(email):
     token = create_session(email)
     st.session_state.email = email
     st.session_state.session_token = token
@@ -589,23 +673,29 @@ def log_out():
     token = st.session_state.get("session_token")
     if token:
         end_session(token)
+    # Preserve theme on logout
+    saved_theme = st.session_state.get("theme")
     for k in list(st.session_state.keys()):
         del st.session_state[k]
+    if saved_theme:
+        st.session_state.theme = saved_theme
     st.query_params.clear()
+    if saved_theme:
+        st.query_params["theme"] = saved_theme
 
 
 # ----------------------------------------------------------------------------
 # Onboarding
 # ----------------------------------------------------------------------------
 
-def is_onboarded(email: str) -> bool:
+def is_onboarded(email):
     if email == TEST_EMAIL:
         return True
     res = sb.table("annotators").select("email").eq("email", email).execute()
     return bool(res.data)
 
 
-def save_onboarding(email: str, data: dict):
+def save_onboarding(email, data):
     sb.table("annotators").insert({
         "email": email,
         "full_name": data.get("full_name") or None,
@@ -617,7 +707,7 @@ def save_onboarding(email: str, data: dict):
 
 
 # ----------------------------------------------------------------------------
-# Queue / lease logic
+# Queue
 # ----------------------------------------------------------------------------
 
 def expire_overdue_assignments():
@@ -627,50 +717,35 @@ def expire_overdue_assignments():
         .execute()
 
 
-def get_my_assignments(email: str):
+def get_my_assignments(email):
     expire_overdue_assignments()
-    res = (sb.table("assignments")
-             .select("*")
-             .eq("annotator_email", email)
-             .order("assigned_at", desc=True)
-             .execute())
+    res = sb.table("assignments").select("*").eq("annotator_email", email).order("assigned_at", desc=True).execute()
     return res.data
 
 
-def count_in_progress(email: str) -> int:
+def count_in_progress(email):
     expire_overdue_assignments()
-    res = (sb.table("assignments")
-             .select("prompt_id", count="exact")
-             .eq("annotator_email", email)
-             .eq("status", "in_progress")
-             .execute())
+    res = sb.table("assignments").select("prompt_id", count="exact").eq("annotator_email", email).eq("status", "in_progress").execute()
     return res.count or 0
 
 
 def find_available_prompt():
     expire_overdue_assignments()
-    used = (sb.table("assignments")
-              .select("prompt_id")
-              .in_("status", ["in_progress", "completed"])
-              .execute())
+    used = sb.table("assignments").select("prompt_id").in_("status", ["in_progress", "completed"]).execute()
     used_ids = {row["prompt_id"] for row in used.data}
-
     all_prompts = sb.table("prompts").select("id").execute()
     available = [row["id"] for row in all_prompts.data if row["id"] not in used_ids]
-
     if not available:
         return None
     return random.choice(available)
 
 
-def request_new_prompt(email: str):
+def request_new_prompt(email):
     if count_in_progress(email) >= MAX_IN_PROGRESS_PER_USER:
         return None, f"You already have {MAX_IN_PROGRESS_PER_USER} prompts in progress. Complete or abandon one first."
-
     prompt_id = find_available_prompt()
     if prompt_id is None:
         return None, "No prompts available right now. Please check back later."
-
     expires_at = now_utc() + timedelta(hours=ASSIGNMENT_TTL_HOURS)
     sb.table("assignments").insert({
         "annotator_email": email,
@@ -682,18 +757,12 @@ def request_new_prompt(email: str):
     return prompt_id, None
 
 
-def abandon_assignment(email: str, prompt_id: str):
-    sb.table("assignments").delete() \
-        .eq("annotator_email", email) \
-        .eq("prompt_id", prompt_id) \
-        .execute()
+def abandon_assignment(email, prompt_id):
+    sb.table("assignments").delete().eq("annotator_email", email).eq("prompt_id", prompt_id).execute()
 
 
-def submit_response(email: str, prompt_id: str, cited_paper_ids: list):
-    cands = (sb.table("prompt_candidates")
-               .select("paper_id")
-               .eq("prompt_id", prompt_id)
-               .execute())
+def submit_response(email, prompt_id, cited_paper_ids):
+    cands = sb.table("prompt_candidates").select("paper_id").eq("prompt_id", prompt_id).execute()
     cited_set = set(cited_paper_ids)
     rows = []
     for c in cands.data:
@@ -705,49 +774,34 @@ def submit_response(email: str, prompt_id: str, cited_paper_ids: list):
             "cited": 1 if pid in cited_set else 0,
         })
     sb.table("responses").upsert(rows, on_conflict="annotator_email,prompt_id,paper_id").execute()
-    sb.table("assignments").update({"status": "completed"}) \
-        .eq("annotator_email", email) \
-        .eq("prompt_id", prompt_id) \
-        .execute()
+    sb.table("assignments").update({"status": "completed"}).eq("annotator_email", email).eq("prompt_id", prompt_id).execute()
 
 
-def load_prompt(prompt_id: str):
+def load_prompt(prompt_id):
     p = sb.table("prompts").select("*").eq("id", prompt_id).execute()
     if not p.data:
         return None
     prompt = p.data[0]
-    cands = (sb.table("prompt_candidates")
-               .select("position, paper_id, papers(id, title, abstract)")
-               .eq("prompt_id", prompt_id)
-               .order("position")
-               .execute())
+    cands = sb.table("prompt_candidates").select("position, paper_id, papers(id, title, abstract)").eq("prompt_id", prompt_id).order("position").execute()
     prompt["candidates"] = cands.data
     return prompt
 
 
-def load_response(email: str, prompt_id: str) -> set:
-    res = (sb.table("responses")
-             .select("paper_id, cited")
-             .eq("annotator_email", email)
-             .eq("prompt_id", prompt_id)
-             .execute())
+def load_response(email, prompt_id):
+    res = sb.table("responses").select("paper_id, cited").eq("annotator_email", email).eq("prompt_id", prompt_id).execute()
     return {r["paper_id"] for r in res.data if r["cited"] == 1}
 
 
 # ----------------------------------------------------------------------------
-# UI: Login page
+# Pages
 # ----------------------------------------------------------------------------
 
 def login_page():
+    render_theme_switcher()
     render_brand_strip("a study of citation patterns")
-
     st.markdown('<div class="eyebrow">SIGN IN</div>', unsafe_allow_html=True)
     st.markdown("# Welcome.")
-    st.markdown(
-        "Enter your email to receive a 6-digit login code. Once verified, "
-        "you'll stay signed in for 30 days on this browser."
-    )
-
+    st.markdown("Enter your email to receive a 6-digit login code. Once verified, you'll stay signed in for 30 days on this browser.")
     st.markdown("<br>", unsafe_allow_html=True)
 
     if "pending_email" not in st.session_state:
@@ -782,11 +836,8 @@ def login_page():
             st.rerun()
 
 
-# ----------------------------------------------------------------------------
-# UI: Consent page
-# ----------------------------------------------------------------------------
-
 def consent_page():
+    render_theme_switcher()
     render_brand_strip("before we begin")
     st.markdown('<div class="eyebrow">CONSENT</div>', unsafe_allow_html=True)
     st.markdown("# Welcome to the study.")
@@ -797,18 +848,12 @@ def consent_page():
         st.rerun()
 
 
-# ----------------------------------------------------------------------------
-# UI: Onboarding page
-# ----------------------------------------------------------------------------
-
 def onboarding_page():
+    render_theme_switcher()
     render_brand_strip("step 2 of 2")
     st.markdown('<div class="eyebrow">YOUR BACKGROUND</div>', unsafe_allow_html=True)
     st.markdown("# A few quick questions.")
-    st.markdown(
-        "This helps us describe the participant pool in aggregate when we "
-        "write up the results. Never tied to individuals."
-    )
+    st.markdown("This helps us describe the participant pool in aggregate when we write up the results. Never tied to individuals.")
     st.markdown("<br>", unsafe_allow_html=True)
 
     full_name = st.text_input("Full name (optional)")
@@ -832,10 +877,6 @@ def onboarding_page():
         st.rerun()
 
 
-# ----------------------------------------------------------------------------
-# UI: Dashboard
-# ----------------------------------------------------------------------------
-
 def _get_sample_prompt_id():
     res = sb.table("prompts").select("id").limit(1).execute()
     return res.data[0]["id"] if res.data else None
@@ -845,13 +886,11 @@ def dashboard_page():
     email = st.session_state.email
     test = is_test_mode()
 
+    render_theme_switcher()
     render_brand_strip(email)
 
     if test:
-        st.markdown(
-            '<div class="test-banner">TEST MODE — co-author preview. No data is saved.</div>',
-            unsafe_allow_html=True,
-        )
+        st.markdown('<div class="test-banner">TEST MODE — co-author preview. No data is saved.</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="eyebrow">DASHBOARD</div>', unsafe_allow_html=True)
     st.markdown("# Your work.")
@@ -871,7 +910,6 @@ def dashboard_page():
             st.rerun()
         return
 
-    # Real mode
     assignments = get_my_assignments(email)
     in_progress_count = sum(1 for a in assignments if a["status"] == "in_progress")
     completed_count = sum(1 for a in assignments if a["status"] == "completed")
@@ -883,8 +921,6 @@ def dashboard_page():
     col3.metric("Maximum at once", MAX_IN_PROGRESS_PER_USER)
 
     st.markdown("<br>", unsafe_allow_html=True)
-
-    # Request a new prompt
     request_disabled = in_progress_count >= MAX_IN_PROGRESS_PER_USER
     if st.button("Request a new prompt", type="primary", disabled=request_disabled):
         prompt_id, err = request_new_prompt(email)
@@ -907,9 +943,7 @@ def dashboard_page():
         return
 
     status_order = {"in_progress": 0, "completed": 1, "expired": 2, "abandoned": 3}
-    assignments_sorted = sorted(
-        assignments, key=lambda a: (status_order.get(a["status"], 99), a["assigned_at"])
-    )
+    assignments_sorted = sorted(assignments, key=lambda a: (status_order.get(a["status"], 99), a["assigned_at"]))
 
     for a in assignments_sorted:
         status = a["status"]
@@ -917,20 +951,16 @@ def dashboard_page():
         if status == "in_progress":
             expires_at = parse_ts(a["expires_at"])
             time_text = humanize_remaining(expires_at) + " remaining"
-            badge_cls = "status-in-progress"
-            badge_text = "IN PROGRESS"
+            badge_cls, badge_text = "status-in-progress", "IN PROGRESS"
         elif status == "completed":
             time_text = "Submitted"
-            badge_cls = "status-completed"
-            badge_text = "COMPLETED"
+            badge_cls, badge_text = "status-completed", "COMPLETED"
         elif status == "expired":
             time_text = "Lease expired"
-            badge_cls = "status-expired"
-            badge_text = "EXPIRED"
+            badge_cls, badge_text = "status-expired", "EXPIRED"
         else:
             time_text = "Abandoned"
-            badge_cls = "status-abandoned"
-            badge_text = "ABANDONED"
+            badge_cls, badge_text = "status-abandoned", "ABANDONED"
 
         c1, c2, c3 = st.columns([2, 3, 1])
         with c1:
@@ -940,10 +970,7 @@ def dashboard_page():
                 unsafe_allow_html=True,
             )
         with c2:
-            st.markdown(
-                f'<div class="assignment-time" style="padding-top: 0.4rem;">{time_text}</div>',
-                unsafe_allow_html=True,
-            )
+            st.markdown(f'<div class="assignment-time" style="padding-top: 0.4rem;">{time_text}</div>', unsafe_allow_html=True)
         with c3:
             if status in ("in_progress", "completed"):
                 btn_label = "Review →" if status == "completed" else "Open →"
@@ -952,10 +979,6 @@ def dashboard_page():
                     st.rerun()
         st.markdown('<div style="border-bottom: 1px solid var(--border); margin: 0.5rem 0;"></div>', unsafe_allow_html=True)
 
-
-# ----------------------------------------------------------------------------
-# UI: Annotation page
-# ----------------------------------------------------------------------------
 
 def annotation_page():
     email = st.session_state.email
@@ -972,31 +995,24 @@ def annotation_page():
 
     assignment = None
     if not test:
-        res = (sb.table("assignments")
-                 .select("*")
-                 .eq("annotator_email", email)
-                 .eq("prompt_id", prompt_id)
-                 .execute())
+        res = sb.table("assignments").select("*").eq("annotator_email", email).eq("prompt_id", prompt_id).execute()
         if res.data:
             assignment = res.data[0]
 
     read_only = (assignment is not None and assignment["status"] != "in_progress")
     expired = (assignment is not None and assignment["status"] == "expired")
 
-    # Header strip
     time_meta = ""
     if assignment and assignment["status"] == "in_progress":
         time_meta = humanize_remaining(parse_ts(assignment['expires_at'])) + " remaining"
     elif read_only:
         time_meta = "review mode"
 
+    render_theme_switcher()
     render_brand_strip(f"{prompt_id} — {time_meta}" if time_meta else prompt_id)
 
     if test:
-        st.markdown(
-            '<div class="test-banner">TEST MODE — nothing will be saved.</div>',
-            unsafe_allow_html=True,
-        )
+        st.markdown('<div class="test-banner">TEST MODE — nothing will be saved.</div>', unsafe_allow_html=True)
 
     if st.button("← Back to dashboard"):
         del st.session_state.current_prompt_id
@@ -1005,14 +1021,9 @@ def annotation_page():
                 del st.session_state[k]
         st.rerun()
 
-    # Instruction card
     st.markdown('<div class="eyebrow">YOUR TASK</div>', unsafe_allow_html=True)
-    st.markdown(
-        f'<div class="instruction-card">{prompt["instruction"]}</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown(f'<div class="instruction-card">{prompt["instruction"]}</div>', unsafe_allow_html=True)
 
-    # Selection state
     sel_key = f"selected_{prompt_id}"
     pre_cited = set()
     if read_only:
@@ -1021,25 +1032,26 @@ def annotation_page():
         st.session_state[sel_key] = set(pre_cited) if read_only else set()
     selected = st.session_state[sel_key]
 
-    # Counter
     n_selected = len(selected)
     if n_selected > CITATION_CAP:
         st.markdown(
             f'<div class="selection-counter selection-counter-danger">'
-            f'{n_selected} / {CITATION_CAP} — reduce to {CITATION_CAP} or fewer'
+            f'<span style="color: inherit;">{n_selected} / {CITATION_CAP} — reduce to {CITATION_CAP} or fewer</span>'
             f'</div>',
             unsafe_allow_html=True,
         )
     elif n_selected == CITATION_CAP:
         st.markdown(
             f'<div class="selection-counter selection-counter-warn">'
-            f'{n_selected} / {CITATION_CAP} — cap reached'
+            f'<span style="color: inherit;">{n_selected} / {CITATION_CAP} — cap reached</span>'
             f'</div>',
             unsafe_allow_html=True,
         )
     else:
         st.markdown(
-            f'<div class="selection-counter">SELECTED &nbsp; {n_selected} / {CITATION_CAP}</div>',
+            f'<div class="selection-counter">'
+            f'<span style="color: inherit;">SELECTED &nbsp; {n_selected} / {CITATION_CAP}</span>'
+            f'</div>',
             unsafe_allow_html=True,
         )
 
@@ -1048,7 +1060,6 @@ def annotation_page():
     elif read_only:
         st.success("This prompt was already completed — viewing in read-only mode.")
 
-    # Candidates
     seed_str = f"{email}_{prompt_id}"
     rng = random.Random(hash(seed_str) % (2**32))
     candidates = list(prompt["candidates"])
@@ -1062,17 +1073,13 @@ def annotation_page():
         paper_id = paper["id"]
         title = paper["title"]
         abstract = paper["abstract"]
-
         is_selected = paper_id in selected
-        card_class = "candidate-card-selected" if is_selected else ""
 
         cols = st.columns([1, 20])
         with cols[0]:
             cb_key = f"cb_{prompt_id}_{paper_id}"
             checked = st.checkbox(
-                "Cite",
-                key=cb_key,
-                value=is_selected,
+                "Cite", key=cb_key, value=is_selected,
                 label_visibility="collapsed",
                 disabled=read_only or expired,
             )
@@ -1089,7 +1096,6 @@ def annotation_page():
             )
             with st.expander("Read abstract"):
                 st.markdown(abstract)
-
         st.markdown('<div style="margin-bottom: 0.4rem;"></div>', unsafe_allow_html=True)
 
     st.session_state[sel_key] = selected
@@ -1138,7 +1144,7 @@ def main():
         layout="centered",
         initial_sidebar_state="collapsed",
     )
-    st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+    inject_theme_css()
     restore_session_from_url()
 
     if "email" not in st.session_state:
