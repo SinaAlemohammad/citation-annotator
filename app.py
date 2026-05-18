@@ -30,7 +30,7 @@ RESEND_FROM = st.secrets.get("RESEND_FROM", "onboarding@resend.dev")
 CODE_LENGTH = 6
 CODE_TTL_MINUTES = 10
 SESSION_TTL_DAYS = 30
-ASSIGNMENT_TTL_HOURS = 24
+ASSIGNMENT_TTL_HOURS = 72
 CITATION_CAP = 10
 MAX_IN_PROGRESS_PER_USER = 3
 TEST_EMAIL = "test@test.com"
@@ -142,11 +142,11 @@ h3 { font-size: 1.15rem !important; }
     --bg-card: #161B22;
     --ink: #E6EDF3;
     --ink-soft: #C9D1D9;
-    --muted: #7D8590;
-    --border: #30363D;
-    --border-strong: #484F58;
-    --accent: #7EE787;
-    --accent-bg: #1A2F1F;
+    --muted: #8B949E;
+    --border: #21262D;
+    --border-strong: #30363D;
+    --accent: #58A6FF;
+    --accent-bg: #1F2A3B;
     --success: #3FB950;
     --warning: #D29922;
     --danger: #F85149;
@@ -161,7 +161,7 @@ h1::before { content: '> '; color: var(--accent); }
 h2 { font-size: 1.4rem !important; }
 h3 { font-size: 1.15rem !important; }
 .brand-mark { font-family: var(--display-font); font-weight: 700; color: var(--accent); }
-.brand-mark::before { content: '$ '; opacity: 0.6; }
+.brand-mark::before { content: '$ '; opacity: 0.5; color: var(--muted); }
 .instruction-card { border-left: 3px solid var(--accent); background: var(--bg-card); font-family: var(--body-font); }
 .candidate-title { font-family: var(--body-font); font-weight: 600; color: var(--ink); }
 .stApp p, .stApp label, .stApp div, .stMarkdown p { color: var(--ink-soft); }
