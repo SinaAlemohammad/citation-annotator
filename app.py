@@ -1,15 +1,15 @@
 """
-Citation Annotator: full app.
+Citation Annotator: full app, styled.
 
 Flow:
-  1. Login (email + OTP via Resend)        -- existing
-  2. Consent screen (first visit only)     -- new
-  3. Onboarding survey (first visit only)  -- new
-  4. Dashboard (list of assignments)       -- new
-  5. Annotation page (per prompt)          -- new
+  1. Login (email + OTP via Resend)
+  2. Consent screen (first visit only)
+  3. Onboarding survey (first visit only)
+  4. Dashboard (list of assignments)
+  5. Annotation page (per prompt)
 
 Test mode (test@test.com): skip auth, skip consent, skip onboarding,
-show a yellow "test mode" banner, do not save anything to assignments/responses.
+show a test-mode banner, do not save anything.
 """
 
 import random
@@ -66,6 +66,370 @@ KD_FAMILIARITY_OPTIONS = [
 ]
 
 # ----------------------------------------------------------------------------
+# Custom styling
+# ----------------------------------------------------------------------------
+
+CUSTOM_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root {
+    --bg: #FAF8F3;
+    --bg-card: #FFFFFF;
+    --ink: #1A1A1A;
+    --ink-soft: #3A3530;
+    --muted: #6B6560;
+    --border: #E8E2D5;
+    --border-strong: #D4CCB8;
+    --accent: #A33B20;
+    --accent-soft: #C25A3D;
+    --accent-bg: #F5E8E0;
+    --success: #2E6B3E;
+    --warning: #B5811D;
+    --danger: #A33B20;
+}
+
+/* --- Base --- */
+.stApp {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+}
+
+.stApp [data-testid="stSidebar"] { display: none; }
+
+/* Main container */
+[data-testid="stMainBlockContainer"] {
+    max-width: 760px;
+    padding-top: 3rem;
+    padding-bottom: 6rem;
+}
+
+/* --- Typography --- */
+.stApp, .stApp p, .stApp label, .stApp div {
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--ink);
+}
+
+h1, h2, h3, h4 {
+    font-family: 'Fraunces', serif !important;
+    font-weight: 500 !important;
+    color: var(--ink) !important;
+    letter-spacing: -0.01em;
+}
+
+h1 { font-size: 2.5rem !important; line-height: 1.15; margin-bottom: 0.5rem !important; }
+h2 { font-size: 1.75rem !important; line-height: 1.2; }
+h3 { font-size: 1.3rem !important; }
+
+/* Body text */
+p, .stMarkdown p {
+    font-size: 1rem;
+    line-height: 1.65;
+    color: var(--ink-soft);
+}
+
+code, .stMarkdown code {
+    font-family: 'IBM Plex Mono', monospace !important;
+    background: var(--accent-bg) !important;
+    color: var(--accent) !important;
+    padding: 0.1em 0.4em !important;
+    border-radius: 3px !important;
+    font-size: 0.92em !important;
+}
+
+/* --- Header brand strip --- */
+.brand-strip {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid var(--border);
+}
+.brand-mark {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.15rem;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+}
+.brand-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* --- Eyebrow label --- */
+.eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+}
+
+/* --- Buttons --- */
+.stButton > button {
+    font-family: 'IBM Plex Sans', sans-serif !important;
+    font-weight: 500 !important;
+    font-size: 0.95rem !important;
+    border-radius: 2px !important;
+    padding: 0.6rem 1.5rem !important;
+    transition: all 0.15s ease !important;
+    border: 1px solid var(--border-strong) !important;
+    background: var(--bg-card) !important;
+    color: var(--ink) !important;
+    box-shadow: none !important;
+}
+
+.stButton > button:hover {
+    border-color: var(--ink) !important;
+    background: var(--ink) !important;
+    color: var(--bg) !important;
+}
+
+.stButton > button[kind="primary"] {
+    background: var(--accent) !important;
+    color: var(--bg-card) !important;
+    border-color: var(--accent) !important;
+}
+.stButton > button[kind="primary"]:hover {
+    background: var(--ink) !important;
+    border-color: var(--ink) !important;
+}
+
+.stButton > button:disabled {
+    background: var(--border) !important;
+    color: var(--muted) !important;
+    border-color: var(--border) !important;
+    cursor: not-allowed !important;
+}
+
+/* --- Inputs --- */
+.stTextInput > div > div > input,
+.stSelectbox > div > div {
+    font-family: 'IBM Plex Sans', sans-serif !important;
+    border-radius: 2px !important;
+    border: 1px solid var(--border-strong) !important;
+    background: var(--bg-card) !important;
+    font-size: 1rem !important;
+    color: var(--ink) !important;
+}
+
+.stTextInput > div > div > input:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 1px var(--accent) !important;
+}
+
+.stTextInput > label, .stSelectbox > label {
+    font-family: 'IBM Plex Sans', sans-serif !important;
+    font-size: 0.9rem !important;
+    color: var(--ink-soft) !important;
+    font-weight: 500 !important;
+}
+
+/* --- Metrics --- */
+[data-testid="stMetric"] {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 1.25rem 1.5rem;
+    border-radius: 2px;
+}
+[data-testid="stMetricLabel"] {
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 0.72rem !important;
+    color: var(--muted) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    font-weight: 500 !important;
+}
+[data-testid="stMetricValue"] {
+    font-family: 'Fraunces', serif !important;
+    font-weight: 500 !important;
+    color: var(--ink) !important;
+}
+
+/* --- Info / warning / error / success boxes --- */
+div[data-testid="stAlertContainer"] {
+    border-radius: 2px !important;
+    border-left: 3px solid var(--accent) !important;
+    font-family: 'IBM Plex Sans', sans-serif !important;
+}
+
+/* Hide default streamlit chrome */
+#MainMenu { visibility: hidden; }
+header[data-testid="stHeader"] { display: none; }
+footer { visibility: hidden; }
+[data-testid="stToolbar"] { display: none; }
+
+/* --- Candidate card --- */
+.candidate-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 0.6rem;
+    transition: border-color 0.15s ease;
+}
+.candidate-card:hover {
+    border-color: var(--border-strong);
+}
+.candidate-card-selected {
+    border-color: var(--accent) !important;
+    background: var(--accent-bg);
+}
+.candidate-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 1.05rem;
+    color: var(--ink);
+    line-height: 1.35;
+    margin-bottom: 0.35rem;
+}
+.candidate-position {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-bottom: 0.3rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* Streamlit checkbox restyle */
+.stCheckbox > label {
+    font-family: 'IBM Plex Sans', sans-serif !important;
+}
+.stCheckbox > label > div[data-testid="stMarkdownContainer"] {
+    display: none;
+}
+
+/* Expander for abstracts */
+.streamlit-expanderHeader, [data-testid="stExpander"] summary {
+    font-family: 'IBM Plex Sans', sans-serif !important;
+    font-size: 0.85rem !important;
+    color: var(--muted) !important;
+    font-weight: 400 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+[data-testid="stExpander"] {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+[data-testid="stExpander"] > details {
+    background: transparent;
+    border: none;
+}
+[data-testid="stExpander"] > details > summary {
+    background: transparent !important;
+    padding: 0.3rem 0 !important;
+}
+[data-testid="stExpander"] [data-testid="stMarkdownContainer"] p {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    margin: 0.5rem 0 0 0;
+}
+
+/* Section divider */
+hr {
+    border: none !important;
+    border-top: 1px solid var(--border) !important;
+    margin: 2rem 0 !important;
+}
+
+/* --- Status badges --- */
+.status-badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.2rem 0.5rem;
+    border-radius: 2px;
+    font-weight: 500;
+}
+.status-in-progress { background: #FFF4E0; color: var(--warning); border: 1px solid #F0DBB0; }
+.status-completed { background: #E5F0E8; color: var(--success); border: 1px solid #C5DCCC; }
+.status-expired { background: #F2DDD7; color: var(--danger); border: 1px solid #DDB8AC; }
+.status-abandoned { background: var(--border); color: var(--muted); }
+
+/* --- Test mode banner --- */
+.test-banner {
+    background: #FFF4E0;
+    border: 1px solid #F0DBB0;
+    border-left: 3px solid var(--warning);
+    color: var(--warning);
+    padding: 0.7rem 1rem;
+    margin-bottom: 1.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    border-radius: 2px;
+}
+
+/* --- Selected counter pill --- */
+.selection-counter {
+    display: inline-block;
+    background: var(--ink);
+    color: var(--bg);
+    padding: 0.5rem 1rem;
+    border-radius: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+}
+.selection-counter-warn { background: var(--warning); }
+.selection-counter-danger { background: var(--danger); }
+
+/* --- Assignment row --- */
+.assignment-row {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.assignment-id {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.95rem;
+    color: var(--ink);
+    font-weight: 500;
+}
+.assignment-time {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+/* --- Prompt instruction card --- */
+.instruction-card {
+    background: var(--bg-card);
+    border-left: 3px solid var(--accent);
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0 2rem 0;
+    font-family: 'Fraunces', serif;
+    font-size: 1.1rem;
+    line-height: 1.5;
+    color: var(--ink);
+}
+
+/* Small caps */
+.small-caps {
+    font-variant: small-caps;
+    letter-spacing: 0.05em;
+}
+</style>
+"""
+
+
+# ----------------------------------------------------------------------------
 # Supabase client
 # ----------------------------------------------------------------------------
 
@@ -97,7 +461,6 @@ def parse_ts(s: str) -> datetime:
 
 
 def humanize_remaining(expires_at: datetime) -> str:
-    """Convert a future timestamp into 'Xh Ym left'."""
     remaining = expires_at - now_utc()
     if remaining.total_seconds() <= 0:
         return "expired"
@@ -105,12 +468,24 @@ def humanize_remaining(expires_at: datetime) -> str:
     hours = total_minutes // 60
     minutes = total_minutes % 60
     if hours > 0:
-        return f"{hours}h {minutes}m left"
-    return f"{minutes}m left"
+        return f"{hours}h {minutes}m"
+    return f"{minutes}m"
 
 
 def is_test_mode() -> bool:
     return st.session_state.get("email") == TEST_EMAIL
+
+
+def render_brand_strip(extra: str = ""):
+    st.markdown(
+        f"""
+        <div class="brand-strip">
+            <span class="brand-mark">Citation Annotator</span>
+            <span class="brand-meta">{extra}</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 # ----------------------------------------------------------------------------
@@ -118,7 +493,6 @@ def is_test_mode() -> bool:
 # ----------------------------------------------------------------------------
 
 def send_code_email(to_email: str, code: str) -> bool:
-    """Send the OTP code via Resend."""
     r = requests.post(
         "https://api.resend.com/emails",
         headers={
@@ -247,7 +621,6 @@ def save_onboarding(email: str, data: dict):
 # ----------------------------------------------------------------------------
 
 def expire_overdue_assignments():
-    """Flip any in_progress assignments past their expires_at to 'expired'."""
     sb.table("assignments").update({"status": "expired"}) \
         .eq("status", "in_progress") \
         .lt("expires_at", now_utc().isoformat()) \
@@ -255,7 +628,6 @@ def expire_overdue_assignments():
 
 
 def get_my_assignments(email: str):
-    """Return the user's assignments with status, ordered by recent first."""
     expire_overdue_assignments()
     res = (sb.table("assignments")
              .select("*")
@@ -275,11 +647,8 @@ def count_in_progress(email: str) -> int:
     return res.count or 0
 
 
-def find_available_prompt() -> str | None:
-    """Find a prompt nobody has in-progress or completed. Returns prompt_id or None."""
+def find_available_prompt():
     expire_overdue_assignments()
-    # Get all prompts that are NOT in the unavailable set.
-    # "Unavailable" = at least one in_progress or completed assignment exists.
     used = (sb.table("assignments")
               .select("prompt_id")
               .in_("status", ["in_progress", "completed"])
@@ -294,8 +663,7 @@ def find_available_prompt() -> str | None:
     return random.choice(available)
 
 
-def request_new_prompt(email: str) -> tuple[str | None, str | None]:
-    """Assign a new prompt to the user. Returns (prompt_id, error_message)."""
+def request_new_prompt(email: str):
     if count_in_progress(email) >= MAX_IN_PROGRESS_PER_USER:
         return None, f"You already have {MAX_IN_PROGRESS_PER_USER} prompts in progress. Complete or abandon one first."
 
@@ -315,7 +683,6 @@ def request_new_prompt(email: str) -> tuple[str | None, str | None]:
 
 
 def abandon_assignment(email: str, prompt_id: str):
-    """Delete the assignment so the prompt goes back to the pool."""
     sb.table("assignments").delete() \
         .eq("annotator_email", email) \
         .eq("prompt_id", prompt_id) \
@@ -323,8 +690,6 @@ def abandon_assignment(email: str, prompt_id: str):
 
 
 def submit_response(email: str, prompt_id: str, cited_paper_ids: list):
-    """Write 30 rows to responses (one per candidate), flip assignment to completed."""
-    # First, load the 30 candidate paper IDs for this prompt
     cands = (sb.table("prompt_candidates")
                .select("paper_id")
                .eq("prompt_id", prompt_id)
@@ -339,7 +704,6 @@ def submit_response(email: str, prompt_id: str, cited_paper_ids: list):
             "paper_id": pid,
             "cited": 1 if pid in cited_set else 0,
         })
-    # Upsert (in case of accidental resubmit)
     sb.table("responses").upsert(rows, on_conflict="annotator_email,prompt_id,paper_id").execute()
     sb.table("assignments").update({"status": "completed"}) \
         .eq("annotator_email", email) \
@@ -348,7 +712,6 @@ def submit_response(email: str, prompt_id: str, cited_paper_ids: list):
 
 
 def load_prompt(prompt_id: str):
-    """Load a prompt and its 30 candidates with paper details."""
     p = sb.table("prompts").select("*").eq("id", prompt_id).execute()
     if not p.data:
         return None
@@ -363,7 +726,6 @@ def load_prompt(prompt_id: str):
 
 
 def load_response(email: str, prompt_id: str) -> set:
-    """Return set of paper_ids the user cited on this prompt (for review)."""
     res = (sb.table("responses")
              .select("paper_id, cited")
              .eq("annotator_email", email)
@@ -377,14 +739,19 @@ def load_response(email: str, prompt_id: str) -> set:
 # ----------------------------------------------------------------------------
 
 def login_page():
-    st.title("Citation Annotator")
+    render_brand_strip("a study of citation patterns")
+
+    st.markdown('<div class="eyebrow">SIGN IN</div>', unsafe_allow_html=True)
+    st.markdown("# Welcome.")
     st.markdown(
-        "Welcome. Enter your email to receive a 6-digit login code. "
-        "Once verified, you'll stay logged in for 30 days on this browser."
+        "Enter your email to receive a 6-digit login code. Once verified, "
+        "you'll stay signed in for 30 days on this browser."
     )
 
+    st.markdown("<br>", unsafe_allow_html=True)
+
     if "pending_email" not in st.session_state:
-        email = st.text_input("Email", key="email_input").strip().lower()
+        email = st.text_input("Email address", key="email_input").strip().lower()
         if st.button("Send code", type="primary", disabled=not email):
             if email == TEST_EMAIL:
                 log_in(email)
@@ -420,9 +787,11 @@ def login_page():
 # ----------------------------------------------------------------------------
 
 def consent_page():
-    st.title("Welcome")
+    render_brand_strip("before we begin")
+    st.markdown('<div class="eyebrow">CONSENT</div>', unsafe_allow_html=True)
+    st.markdown("# Welcome to the study.")
     st.markdown(CONSENT_TEXT)
-    st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
     if st.button("I understand, let's continue", type="primary"):
         st.session_state.consent_given = True
         st.rerun()
@@ -433,20 +802,26 @@ def consent_page():
 # ----------------------------------------------------------------------------
 
 def onboarding_page():
-    st.title("A few quick questions")
-    st.markdown("This information helps us describe the participant pool in the paper. Aggregate only, never tied to individuals.")
-    st.markdown("---")
+    render_brand_strip("step 2 of 2")
+    st.markdown('<div class="eyebrow">YOUR BACKGROUND</div>', unsafe_allow_html=True)
+    st.markdown("# A few quick questions.")
+    st.markdown(
+        "This helps us describe the participant pool in aggregate when we "
+        "write up the results. Never tied to individuals."
+    )
+    st.markdown("<br>", unsafe_allow_html=True)
 
     full_name = st.text_input("Full name (optional)")
-    affiliation = st.text_input("Affiliation (institution or company) *")
-    career_stage = st.selectbox("Career stage *", [""] + CAREER_STAGES)
-    research_area = st.text_input("Primary research area * (e.g., ML, NLP, vision)")
-    kd_familiarity = st.selectbox("Familiarity with knowledge distillation literature *", [""] + KD_FAMILIARITY_OPTIONS)
+    affiliation = st.text_input("Affiliation (institution or company)")
+    career_stage = st.selectbox("Career stage", [""] + CAREER_STAGES)
+    research_area = st.text_input("Primary research area (e.g., ML, NLP, vision)")
+    kd_familiarity = st.selectbox("Familiarity with knowledge distillation literature", [""] + KD_FAMILIARITY_OPTIONS)
 
     required = [affiliation, career_stage, research_area, kd_familiarity]
     can_submit = all(x for x in required)
 
-    if st.button("Continue", type="primary", disabled=not can_submit):
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("Continue to the study", type="primary", disabled=not can_submit):
         save_onboarding(st.session_state.email, {
             "full_name": full_name.strip(),
             "affiliation": affiliation.strip(),
@@ -461,28 +836,35 @@ def onboarding_page():
 # UI: Dashboard
 # ----------------------------------------------------------------------------
 
+def _get_sample_prompt_id():
+    res = sb.table("prompts").select("id").limit(1).execute()
+    return res.data[0]["id"] if res.data else None
+
+
 def dashboard_page():
     email = st.session_state.email
     test = is_test_mode()
 
-    st.title("Citation Annotator")
+    render_brand_strip(email)
+
     if test:
-        st.warning("🧪 **Test mode.** This is a preview for co-authors. Nothing is saved.")
+        st.markdown(
+            '<div class="test-banner">TEST MODE — co-author preview. No data is saved.</div>',
+            unsafe_allow_html=True,
+        )
+
+    st.markdown('<div class="eyebrow">DASHBOARD</div>', unsafe_allow_html=True)
+    st.markdown("# Your work.")
 
     cols = st.columns([4, 1])
-    with cols[0]:
-        st.markdown(f"Logged in as **{email}**")
     with cols[1]:
         if st.button("Log out"):
             log_out()
             st.rerun()
 
-    st.markdown("---")
-
     if test:
-        # In test mode, give a fixed sample prompt to look at
-        st.subheader("Sample prompt (test mode)")
-        st.markdown("Click below to preview the annotation page with a sample prompt.")
+        st.markdown("---")
+        st.markdown("Preview the annotation interface with a sample prompt.")
         sample_id = _get_sample_prompt_id()
         if sample_id and st.button("Open sample prompt", type="primary"):
             st.session_state.current_prompt_id = sample_id
@@ -494,12 +876,13 @@ def dashboard_page():
     in_progress_count = sum(1 for a in assignments if a["status"] == "in_progress")
     completed_count = sum(1 for a in assignments if a["status"] == "completed")
 
+    st.markdown("<br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     col1.metric("Completed", completed_count)
     col2.metric("In progress", in_progress_count)
-    col3.metric("Max in progress", MAX_IN_PROGRESS_PER_USER)
+    col3.metric("Maximum at once", MAX_IN_PROGRESS_PER_USER)
 
-    st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
 
     # Request a new prompt
     request_disabled = in_progress_count >= MAX_IN_PROGRESS_PER_USER
@@ -515,49 +898,64 @@ def dashboard_page():
         st.caption(f"You have the maximum {MAX_IN_PROGRESS_PER_USER} prompts in progress. Complete or abandon one to get more.")
 
     st.markdown("---")
-    st.subheader("Your prompts")
+    st.markdown('<div class="eyebrow">YOUR PROMPTS</div>', unsafe_allow_html=True)
+    st.markdown("### Recent activity")
 
     if not assignments:
-        st.info("No prompts assigned yet. Click 'Request a new prompt' to start.")
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.info("No prompts yet. Click 'Request a new prompt' above to get started.")
         return
 
-    # Sort: in_progress first, then completed, then expired/abandoned
     status_order = {"in_progress": 0, "completed": 1, "expired": 2, "abandoned": 3}
-    assignments_sorted = sorted(assignments, key=lambda a: (status_order.get(a["status"], 99), a["assigned_at"]))
+    assignments_sorted = sorted(
+        assignments, key=lambda a: (status_order.get(a["status"], 99), a["assigned_at"])
+    )
 
     for a in assignments_sorted:
         status = a["status"]
         prompt_id = a["prompt_id"]
         if status == "in_progress":
             expires_at = parse_ts(a["expires_at"])
-            label = f"🟡 In progress — {humanize_remaining(expires_at)}"
+            time_text = humanize_remaining(expires_at) + " remaining"
+            badge_cls = "status-in-progress"
+            badge_text = "IN PROGRESS"
         elif status == "completed":
-            label = "🟢 Completed"
+            time_text = "Submitted"
+            badge_cls = "status-completed"
+            badge_text = "COMPLETED"
         elif status == "expired":
-            label = "🔴 Expired"
+            time_text = "Lease expired"
+            badge_cls = "status-expired"
+            badge_text = "EXPIRED"
         else:
-            label = "⚪ Abandoned"
+            time_text = "Abandoned"
+            badge_cls = "status-abandoned"
+            badge_text = "ABANDONED"
 
-        c1, c2 = st.columns([4, 1])
+        c1, c2, c3 = st.columns([2, 3, 1])
         with c1:
-            st.markdown(f"**{prompt_id}** — {label}")
+            st.markdown(
+                f'<div class="assignment-id">{prompt_id}</div>'
+                f'<div><span class="status-badge {badge_cls}">{badge_text}</span></div>',
+                unsafe_allow_html=True,
+            )
         with c2:
-            btn_label = "Review" if status == "completed" else ("Open" if status == "in_progress" else "View")
+            st.markdown(
+                f'<div class="assignment-time" style="padding-top: 0.4rem;">{time_text}</div>',
+                unsafe_allow_html=True,
+            )
+        with c3:
             if status in ("in_progress", "completed"):
+                btn_label = "Review →" if status == "completed" else "Open →"
                 if st.button(btn_label, key=f"open_{prompt_id}"):
                     st.session_state.current_prompt_id = prompt_id
                     st.rerun()
+        st.markdown('<div style="border-bottom: 1px solid var(--border); margin: 0.5rem 0;"></div>', unsafe_allow_html=True)
 
 
 # ----------------------------------------------------------------------------
 # UI: Annotation page
 # ----------------------------------------------------------------------------
-
-def _get_sample_prompt_id() -> str | None:
-    """For test mode: just grab a deterministic prompt to preview."""
-    res = sb.table("prompts").select("id").limit(1).execute()
-    return res.data[0]["id"] if res.data else None
-
 
 def annotation_page():
     email = st.session_state.email
@@ -572,7 +970,6 @@ def annotation_page():
             st.rerun()
         return
 
-    # Determine if read-only (completed or test mode is preview-only on submit)
     assignment = None
     if not test:
         res = (sb.table("assignments")
@@ -586,74 +983,96 @@ def annotation_page():
     read_only = (assignment is not None and assignment["status"] != "in_progress")
     expired = (assignment is not None and assignment["status"] == "expired")
 
-    # Header
+    # Header strip
+    time_meta = ""
+    if assignment and assignment["status"] == "in_progress":
+        time_meta = humanize_remaining(parse_ts(assignment['expires_at'])) + " remaining"
+    elif read_only:
+        time_meta = "review mode"
+
+    render_brand_strip(f"{prompt_id} — {time_meta}" if time_meta else prompt_id)
+
     if test:
-        st.warning("🧪 **Test mode.** Submissions will not be saved.")
+        st.markdown(
+            '<div class="test-banner">TEST MODE — nothing will be saved.</div>',
+            unsafe_allow_html=True,
+        )
+
     if st.button("← Back to dashboard"):
         del st.session_state.current_prompt_id
-        # Clear the selection state for this prompt too
         for k in list(st.session_state.keys()):
             if k.startswith(f"sel_{prompt_id}_") or k == f"selected_{prompt_id}":
                 del st.session_state[k]
         st.rerun()
 
-    st.markdown("---")
-    st.subheader(f"Prompt {prompt_id}")
-    st.info(prompt["instruction"])
+    # Instruction card
+    st.markdown('<div class="eyebrow">YOUR TASK</div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="instruction-card">{prompt["instruction"]}</div>',
+        unsafe_allow_html=True,
+    )
 
-    if assignment and assignment["status"] == "in_progress":
-        st.caption(f"⏱ {humanize_remaining(parse_ts(assignment['expires_at']))}")
-
-    # Load existing response if completed
+    # Selection state
+    sel_key = f"selected_{prompt_id}"
     pre_cited = set()
     if read_only:
         pre_cited = load_response(email, prompt_id)
+    if sel_key not in st.session_state:
+        st.session_state[sel_key] = set(pre_cited) if read_only else set()
+    selected = st.session_state[sel_key]
 
-    # Randomize candidate order deterministically per (annotator, prompt)
+    # Counter
+    n_selected = len(selected)
+    if n_selected > CITATION_CAP:
+        st.markdown(
+            f'<div class="selection-counter selection-counter-danger">'
+            f'{n_selected} / {CITATION_CAP} — reduce to {CITATION_CAP} or fewer'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+    elif n_selected == CITATION_CAP:
+        st.markdown(
+            f'<div class="selection-counter selection-counter-warn">'
+            f'{n_selected} / {CITATION_CAP} — cap reached'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            f'<div class="selection-counter">SELECTED &nbsp; {n_selected} / {CITATION_CAP}</div>',
+            unsafe_allow_html=True,
+        )
+
+    if expired:
+        st.error("This assignment has expired. You can no longer submit.")
+    elif read_only:
+        st.success("This prompt was already completed — viewing in read-only mode.")
+
+    # Candidates
     seed_str = f"{email}_{prompt_id}"
     rng = random.Random(hash(seed_str) % (2**32))
     candidates = list(prompt["candidates"])
     rng.shuffle(candidates)
 
-    # Selection state in session_state
-    sel_key = f"selected_{prompt_id}"
-    if sel_key not in st.session_state:
-        if read_only:
-            st.session_state[sel_key] = set(pre_cited)
-        else:
-            st.session_state[sel_key] = set()
-    selected = st.session_state[sel_key]
+    st.markdown('<div class="eyebrow">CANDIDATE PAPERS</div>', unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    # Counter at the top
-    n_selected = len(selected)
-    if n_selected > CITATION_CAP:
-        st.error(f"You have selected {n_selected} papers. Reduce to {CITATION_CAP} or fewer before submitting.")
-    elif n_selected == CITATION_CAP:
-        st.warning(f"Selected {n_selected} / {CITATION_CAP} (cap reached).")
-    else:
-        st.markdown(f"**Selected: {n_selected} / {CITATION_CAP}**")
-
-    if expired:
-        st.error("This assignment has expired. You can no longer submit.")
-    elif read_only:
-        st.success("This prompt was already completed (read-only view).")
-
-    st.markdown("---")
-
-    # Render candidates
-    for c in candidates:
+    for idx, c in enumerate(candidates):
         paper = c["papers"]
         paper_id = paper["id"]
         title = paper["title"]
         abstract = paper["abstract"]
 
-        cb_key = f"cb_{prompt_id}_{paper_id}"
+        is_selected = paper_id in selected
+        card_class = "candidate-card-selected" if is_selected else ""
+
         cols = st.columns([1, 20])
         with cols[0]:
+            cb_key = f"cb_{prompt_id}_{paper_id}"
             checked = st.checkbox(
                 "Cite",
                 key=cb_key,
-                value=paper_id in selected,
+                value=is_selected,
                 label_visibility="collapsed",
                 disabled=read_only or expired,
             )
@@ -663,29 +1082,34 @@ def annotation_page():
                 else:
                     selected.discard(paper_id)
         with cols[1]:
-            st.markdown(f"**{title}**")
-            with st.expander("Abstract", expanded=False):
+            st.markdown(
+                f'<div class="candidate-position">№ {idx + 1:02d}</div>'
+                f'<div class="candidate-title">{title}</div>',
+                unsafe_allow_html=True,
+            )
+            with st.expander("Read abstract"):
                 st.markdown(abstract)
-        st.markdown("---")
+
+        st.markdown('<div style="margin-bottom: 0.4rem;"></div>', unsafe_allow_html=True)
 
     st.session_state[sel_key] = selected
 
-    # Submit / Abandon
     if read_only or expired:
         return
 
+    st.markdown("---")
     n_selected = len(selected)
     can_submit = (1 <= n_selected <= CITATION_CAP)
 
     col1, col2 = st.columns([1, 1])
     with col1:
-        if st.button("Submit this prompt", type="primary", disabled=not can_submit):
+        if st.button("Submit", type="primary", disabled=not can_submit):
             if test:
-                st.success("✅ (Test mode) Submission previewed — nothing saved.")
+                st.success("Submission previewed (test mode — nothing saved).")
                 st.balloons()
             else:
                 submit_response(email, prompt_id, list(selected))
-                st.success("Submitted! Returning to dashboard...")
+                st.success("Submitted. Returning to dashboard.")
                 del st.session_state.current_prompt_id
                 del st.session_state[sel_key]
                 st.rerun()
@@ -709,7 +1133,12 @@ def annotation_page():
 # ----------------------------------------------------------------------------
 
 def main():
-    st.set_page_config(page_title="Citation Annotator", layout="centered")
+    st.set_page_config(
+        page_title="Citation Annotator",
+        layout="centered",
+        initial_sidebar_state="collapsed",
+    )
+    st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
     restore_session_from_url()
 
     if "email" not in st.session_state:
@@ -719,7 +1148,6 @@ def main():
     email = st.session_state.email
     test = is_test_mode()
 
-    # Test mode skips consent + onboarding
     if test:
         if "current_prompt_id" in st.session_state:
             annotation_page()
@@ -727,7 +1155,6 @@ def main():
             dashboard_page()
         return
 
-    # Consent gate (one-time per browser session)
     if not is_onboarded(email):
         if not st.session_state.get("consent_given"):
             consent_page()
@@ -735,7 +1162,6 @@ def main():
         onboarding_page()
         return
 
-    # Normal flow
     if "current_prompt_id" in st.session_state:
         annotation_page()
     else:
