@@ -69,7 +69,7 @@ KD_FAMILIARITY_OPTIONS = [
 
 THEMES = {
     "editorial": {
-        "label": "Editorial",
+        "label": "Journal",
         "css": """
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
@@ -101,7 +101,7 @@ h3 { font-size: 1.3rem !important; }
 """,
     },
     "modern": {
-        "label": "Modern",
+        "label": "Clean",
         "css": """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -133,7 +133,7 @@ h3 { font-size: 1.15rem !important; }
 """,
     },
     "terminal": {
-        "label": "Terminal",
+        "label": "Dark",
         "css": """
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
 
@@ -168,7 +168,7 @@ h3 { font-size: 1.15rem !important; }
 """,
     },
     "print": {
-        "label": "Print",
+        "label": "Book",
         "css": """
 @import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap');
 
@@ -202,7 +202,7 @@ h3 { font-size: 1.35rem !important; }
 """,
     },
     "default": {
-        "label": "Default",
+        "label": "Plain",
         "css": """
 :root {
     --bg: #FFFFFF;
@@ -463,6 +463,25 @@ hr { border: none !important; border-top: 1px solid var(--border) !important; ma
     margin-right: 0.4rem;
     margin-bottom: 0.5rem;
 }
+
+/* Theme switcher buttons: single line, smaller padding, tight */
+button[data-testid="stBaseButton-secondary"][kind="secondary"],
+button[data-testid="stBaseButton-primary"][kind="primary"] {
+    white-space: nowrap !important;
+}
+[data-testid="stHorizontalBlock"] button {
+    white-space: nowrap !important;
+}
+/* Make the theme switcher row visually distinct, like a segmented bar */
+.stApp [data-testid="stHorizontalBlock"]:has(button[data-testid*="theme_btn"]) {
+    margin-bottom: 1rem;
+    padding: 0.5rem 0;
+}
+button[data-testid*="theme_btn"] {
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.82rem !important;
+    min-width: 0 !important;
+}
 """
 
 
@@ -540,25 +559,29 @@ def inject_theme_css():
 
 
 def render_theme_switcher():
-    """Render small inline buttons for theme switching."""
+    """Render a compact inline theme switcher."""
     current = get_current_theme()
     theme_names = list(THEMES.keys())
-    cols = st.columns([1] + [1] * len(theme_names) + [3])
+
+    # Use generous column widths: label gets 2, each button gets 2, then padding
+    n = len(theme_names)
+    col_widths = [1.4] + [1.5] * n + [3.0]
+    cols = st.columns(col_widths)
     with cols[0]:
         st.markdown(
-            '<div class="theme-switcher-label" style="padding-top: 0.55rem;">THEME</div>',
+            '<div class="theme-switcher-label" style="padding-top: 0.55rem; text-align: right;">THEME</div>',
             unsafe_allow_html=True,
         )
     for i, name in enumerate(theme_names):
         with cols[i + 1]:
             label = THEMES[name]["label"]
             is_current = (name == current)
-            # The "current" theme button is shown disabled to indicate selection
             if st.button(
                 label,
                 key=f"theme_btn_{name}",
                 disabled=is_current,
                 type="primary" if is_current else "secondary",
+                use_container_width=True,
             ):
                 set_theme(name)
                 st.rerun()
